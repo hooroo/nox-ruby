@@ -1,4 +1,5 @@
 require 'net/https'
+require 'yaml'
 
 module Net
   class HTTP
@@ -9,9 +10,12 @@ module Net
 
       if should_use_nox? && !Thread.current[:nox_in_progress]
 
+        @@config ||= YAML.load_file(Rails.root.join("config/nox.yml"))
+        config = @@config[Rails.env.to_s]
+
         Thread.current[:nox_in_progress] = true
 
-        http = Net::HTTP.new('paperboy.jqdev.net', 7654)
+        http = Net::HTTP.new(config['host'], config['port'])
         method = req.class.name.split('::').last.downcase
         headers = {
           'Nox-URL' => (use_ssl? ? 'https://' : 'http://') +  @address.to_s + ':' + @port.to_s + req.path,
