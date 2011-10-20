@@ -1,7 +1,6 @@
 require 'net/https'
 
-module Nox
-
+module Net
   class HTTP
 
     alias :old_request :request
@@ -57,5 +56,4 @@ module Nox
     end
 
   end
-
 end
