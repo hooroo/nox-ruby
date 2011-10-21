@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.authors     = ["keithpitt"]
   s.email       = ["me@keithpitt.com"]
   s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.summary     = %q{Ruby adapter for Nox}
+  s.description = %q{Ruby adapter for Nox}
 
   s.rubyforge_project = "nox"
 
