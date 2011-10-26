@@ -1,0 +1,21 @@
+development:
+  host: nox-server.com
+  port: 1234
+  ignore:
+    -
+      host: "localhost"
+    -
+      port: 5000
+    -
+      host: "google.com"
+      port: 8080
+    -
+      path: !ruby/regexp '/.gif$/'
+    -
+      port: <%= 1000 + 2000 %>
+test:
+  host: nox-server.com
+  port: 1234
+production:
+  host: nox-server.com
+  port: 1234

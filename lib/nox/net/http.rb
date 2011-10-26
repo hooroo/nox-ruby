@@ -1,5 +1,6 @@
 require 'net/https'
 require 'yaml'
+require 'erb'
 
 module Net
   class HTTP
@@ -8,18 +9,19 @@ module Net
 
     def request(req, body = nil, &block)
 
-      if should_use_nox? && !Thread.current[:nox_in_progress]
+      uri = URI.parse((use_ssl? ? 'https://' : 'http://') +  @address.to_s + ':' + @port.to_s + req.path)
+      config = nox_config[Rails.env.to_s]
 
-        @@config ||= YAML.load_file(Rails.root.join("config/nox.yml"))
-        config = @@config[Rails.env.to_s]
+      if (should_use_nox? && !should_ignore_request?(uri, config['ignore'])) && !Thread.current[:nox_in_progress]
 
         Thread.current[:nox_in_progress] = true
 
         http = Net::HTTP.new(config['host'], config['port'])
-        method = req.class.name.split('::').last.downcase
+
         headers = {
-          'Nox-URL' => (use_ssl? ? 'https://' : 'http://') +  @address.to_s + ':' + @port.to_s + req.path,
-          'Nox-Timeout' => http.read_timeout.to_s
+          'Nox-URL' => uri.to_s,
+          'Nox-Timeout' => http.read_timeout.to_s,
+          'Nox-Method' => req.method
         }
 
         req.each_header do |key, value|
@@ -31,7 +33,6 @@ module Net
         # Make sure it doesn't fail
         exception = nil
         begin
-          # TODO: Handle diff between post/get/put/delete, etc...
           resp = http.post('/request', body, headers)
         rescue Exception => e
           exception = e
@@ -55,8 +56,34 @@ module Net
 
     end
 
+    def nox_config
+      @@config ||= YAML::load(ERB.new(IO.read(File.join(Rails.root, 'config', 'nox.yml'))).result)
+    end
+
+    def should_ignore_request?(uri, rules)
+      return false if rules.nil? || rules.empty?
+
+      rules.each do |rule|
+        matches = true
+
+        rule.each do |key, test|
+          value = uri.send(key)
+
+          if test.kind_of?(Regexp)
+            matches = false unless value =~ test
+          else
+            matches = false unless value.to_s == test.to_s
+          end
+        end
+
+        return true if matches
+      end
+
+      false
+    end
+
     def should_use_nox?
-      File.exist?(Rails.root.join("tmp/nox.txt"))
+      File.exist? File.join(Rails.root, "tmp/nox.txt")
     end
 
   end
