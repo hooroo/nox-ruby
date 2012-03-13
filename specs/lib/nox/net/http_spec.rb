@@ -103,6 +103,17 @@ describe Net::HTTP do
         assert_requested(:post, "http://nox-server.com:1234/request")
       end
 
+      it "should pass through post data" do
+        stub_request(:post, "http://nox-server.com:1234/request").
+          with(:body => {"per_page"=>"50", "q"=>"My query"},
+               :headers => {'Accept'=>'*/*', 'Content-Type'=>'application/x-www-form-urlencoded', 'Nox-Method'=>'POST', 'Nox-Timeout'=>'60', 'Nox-Url'=>'http://allow.com/', 'User-Agent'=>'Ruby'}).
+          to_return(:status => 200, :body => "", :headers => {})
+
+        response = Net::HTTP.post_form(URI.parse('http://allow.com/'), {"q" => "My query", "per_page" => "50"})
+
+        assert_requested(:post, "http://nox-server.com:1234/request")
+      end
+
       it "should ignore certain requests" do
         stub_request(:get, "http://allow.com/logo.gif")
         @http.get '/logo.gif'

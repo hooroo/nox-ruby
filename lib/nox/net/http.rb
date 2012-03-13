@@ -33,7 +33,10 @@ module Net
         # Make sure it doesn't fail
         exception = nil
         begin
-          resp = http.post('/request', body, headers)
+          # For backwards compat. body is deprecated I believe (at least in 1.9.3 it returns nothings)
+          actual_body = req.respond_to?(:body) ? req.body : body
+
+          resp = http.request_post('/request', actual_body, headers)
         rescue Exception => e
           exception = e
         end
