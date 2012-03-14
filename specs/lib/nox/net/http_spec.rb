@@ -129,6 +129,18 @@ describe Net::HTTP do
         assert_requested(:post, "http://nox-server.com:1234/request")
       end
 
+      it "should allow different types of post syntax" do
+        stub_request(:post, "http://nox-server.com:1234/request").
+            with(:body => "foo=bar&x=y",
+                 :headers => {'Accept'=>'*/*', 'Nox-Method'=>'POST', 'Nox-Timeout'=>'60', 'Nox-Url'=>'http://allow.com/foo.html', 'User-Agent'=>'Ruby'}).
+            to_return(:status => 200, :body => "", :headers => {})
+
+        http = Net::HTTP.new("allow.com")
+        http.post "/foo.html", "foo=bar&x=y"
+
+        assert_requested(:post, "http://nox-server.com:1234/request")
+      end
+
       after :each do
         remove_nox
       end
